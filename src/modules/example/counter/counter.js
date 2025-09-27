@@ -12,6 +12,7 @@ export default class extends LightningElement {
   }
 
   set config(config) {
+    console.info('Provided config:', config);
     this._config = { ...(config ?? DEFAULT_CONFIG) };
     this.counter = this._config.counter;
   }
