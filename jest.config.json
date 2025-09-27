@@ -7,5 +7,6 @@
   "testEnvironment": "jsdom",
   "testEnvironmentOptions": {
     "url": "http://localhost/"
-  }
+  },
+  "setupFiles": ["<rootDir>/jest.console.setup.js"]
 }
