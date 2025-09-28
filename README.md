@@ -16,6 +16,7 @@ set config(config) {
 ```
 
 When I run Jest tests, I could see:
+
 ![Empty object on a non-empty object](empty-object-which-is-not-empty.png)
 
 Because LWC wraps all the objects in a LWC membrame for proxification.
@@ -23,8 +24,9 @@ That's why when you run a LWC app, there is a [https://github.com/salesforce/lwc
 
 ## A solution?
 
-For some reason, the `unwrap` exposed from `@lwc/engine-core` seems not find any referenced wrapped values (despite forcing the `IS_BROWSER` variable).
-Then, we should deeply clone the log parameters.
+### Naive solution (without LWC library)
+
+We chould deeply clone the log parameters.
 
 For example, if we load the ` core-js` module, and then we define a Jest' setup file:
 
@@ -46,8 +48,34 @@ global.console = {
 ```
 
 Then it will work:
+
 ![No more empty object](no-more-empty-object.png)
 
+### Better solution: use of `@lwc/engine-dom`
+
+`@lwc/engine-dom` exposes some public utilities method, and we could use `unwrap`.
+This method is based on the [Salesforce's membrane](https://github.com/salesforce/observable-membrane) to profixy and observe mutations.
+The method `unwrap` will then check if some membrames were created for the provided object and if so will return the original object:
+
+```javascript
+import { unwrap } from '@lwc/engine-dom';
+
+const originalConsole = global.console;
+
+global.console = {
+  ...global.console,
+
+  info: (...args) => {
+    originalConsole.info.apply(originalConsole, [
+      ...Array.from(args).map((obj) => unwrap(obj)),
+    ]);
+  },
+};
+```
+
+Then we will see fully our objects in the console:
+
+![No more empty object with LWC](no-more-empty-object-with-lwc.png)
 
 ## Commands
 
